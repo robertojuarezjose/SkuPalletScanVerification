@@ -1,4 +1,3 @@
-import { Home } from "@mui/icons-material";
 import { AppBar, Box, Container, MenuItem, Toolbar, Typography } from "@mui/material";
 import { NavLink } from "react-router-dom";
 import { Observer } from "mobx-react-lite";
@@ -12,15 +11,15 @@ export default function NavBar() {
     return (
         <Box sx={{ flexGrow: 1 }}>
             <AppBar position="fixed" sx={{
-                backgroundImage: 'linear-gradient(135deg, #182a73 0%, #218aae 69%, #20a7ac 89%)',
+                backgroundColor: 'primary.main',
             }}>
                 <Container maxWidth="xl">
                     <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Box>
                             <MenuItem component={NavLink} to='/' sx={{ display: 'flex', gap: 2 }}>
-                                <Home fontSize="large" />
+                               
                                 <Typography sx={{position: 'relative'}} variant="h4" fontWeight='bold'>
-                                    Template App
+                                    Scan System
                                 </Typography>
                                 <Observer>
                                     {() => store.uiStore.isLoading ? (

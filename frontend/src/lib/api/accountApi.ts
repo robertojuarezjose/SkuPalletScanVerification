@@ -3,7 +3,7 @@ import type { User, UserFormValues } from '../types/user';
 
 const AccountApi = {
   login: async (creds: UserFormValues) => {
-    return await requests.post<User>('/auth/login', creds);
+    return await requests.post<User>('/auth/login/?useCookies=true', creds);
   },
   register: async (creds: UserFormValues) => {
     return await requests.post<void>('/users/register', creds);

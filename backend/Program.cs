@@ -1,3 +1,5 @@
+using System.Text;
+using Dapper;
 using MAD.WebApi.Data;
 using MAD.WebApi.Endpoints;
 using MAD.WebApi.IoC;
@@ -5,36 +7,15 @@ using MAD.WebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-//builder.Services.AddControllers();
+
+// ---------- Services ----------
 builder.Services.AddRepositories();
 builder.Services.AddScoped<DatabaseInitializer>();
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidIssuer = builder.Configuration["JwtConfig:Issuer"],
-        ValidAudience = builder.Configuration["JwtConfig:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtConfig:Key"]!)),
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = false,
-        ValidateIssuerSigningKey = true
-    };
-});
-builder.Services.AddAuthorization();
 builder.Services.AddScoped<JwtService>();
 
-// CORS using appsettings origins
+// CORS (from appsettings)
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
 builder.Services.AddCors(options =>
 {
@@ -45,12 +26,75 @@ builder.Services.AddCors(options =>
               .AllowCredentials());
 });
 
-// Swagger
+// Dapper: snake_case -> PascalCase
+DefaultTypeMap.MatchNamesWithUnderscores = true;
+
+// Dapper connection factory
+builder.Services.AddSingleton<ISqlConnectionFactory, SqlConnectionFactory>();
+
+// ---------- AuthN/AuthZ (JWT from cookie or Authorization header) ----------
+var issuer    = builder.Configuration["JwtConfig:Issuer"];
+var audience  = builder.Configuration["JwtConfig:Audience"];
+var keyConfig = builder.Configuration["JwtConfig:Key"]!;
+
+byte[] keyBytes;
+try
+{
+    keyBytes = Convert.FromBase64String(keyConfig); // recommended
+}
+catch
+{
+    keyBytes = Encoding.UTF8.GetBytes(keyConfig);   // fallback if not Base64
+}
+var signingKey = new SymmetricSecurityKey(keyBytes);
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false; // set true in prod behind HTTPS
+        options.SaveToken = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey         = signingKey,
+            ValidateIssuer           = true,
+            ValidIssuer              = issuer,   // EXACT match with token creation
+            ValidateAudience         = true,
+            ValidAudience            = audience, // EXACT match
+            ValidateLifetime         = true,
+            ClockSkew                = TimeSpan.Zero
+        };
+
+        // Read JWT from cookie "auth" if no Authorization header
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = ctx =>
+            {
+                if (string.IsNullOrEmpty(ctx.Token) &&
+                    ctx.Request.Cookies.TryGetValue("auth", out var cookieToken))
+                {
+                    ctx.Token = cookieToken;
+                }
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = ctx =>
+            {
+                Console.WriteLine($"JWT auth failed: {ctx.Exception.Message}");
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+// ---------- Swagger ----------
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "MAD.WebApi", Version = "v1" });
 
+    // Bearer scheme stays for header-based testing; cookies work automatically in-browser
     var jwtSecurityScheme = new OpenApiSecurityScheme
     {
         Scheme = "bearer",
@@ -58,7 +102,7 @@ builder.Services.AddSwaggerGen(options =>
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
-        Description = "JWT Authorization header using the Bearer scheme.",
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
         Reference = new OpenApiReference { Id = "Bearer", Type = ReferenceType.SecurityScheme }
     };
 
@@ -69,22 +113,16 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Dapper: snake_case columns -> PascalCase props
-Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
-
-// Dapper connection factory
-builder.Services.AddSingleton<ISqlConnectionFactory, SqlConnectionFactory>();
-
-
 var app = builder.Build();
-//app.MapControllers();
 
+// ---------- DB init ----------
 using (var scope = app.Services.CreateScope())
 {
     var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
     await initializer.InitializeAsync();
 }
 
+// ---------- Middleware ----------
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -95,11 +133,13 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseHttpsRedirection();
+
 app.UseCors("frontend");
-app.UseAuthentication();
+app.UseAuthentication();   // must be before UseAuthorization
 app.UseAuthorization();
 
-
+// ---------- Endpoints ----------
 app.MapPalletEndpoints();
 app.MapSkuEndpoints();
 app.MapScanEndpoints();

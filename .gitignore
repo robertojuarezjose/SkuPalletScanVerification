@@ -1,27 +1,65 @@
-# macOS
+# ---------------------------
+# OS
+# ---------------------------
 .DS_Store
+Thumbs.db
 
-# IDE
-.vscode/
+# ---------------------------
+# IDE / Editors
+# ---------------------------
+.vs/
+.vscode/*
+!.vscode/extensions.json
 .idea/
 *.suo
 *.user
 *.rsuser
 *.sln.docstates
 
-# Logs
-*.log
+# VS transient indices / caches
+**/CopilotIndices/
+**/FileContentIndex/
+**/*.vsidx
+**/slnx.sqlite
 
-# Node / Vite
+# ---------------------------
+# Logs
+# ---------------------------
+*.log
+logs/
+
+# ---------------------------
+# Frontend (Vite/Node)
+# ---------------------------
 **/node_modules/
 **/dist/
 **/.vite/
-**/.env*
-npm-debug.log*
+**/.cache/
+coverage/
+*.tsbuildinfo
 
+# If you ever use Next/Turborepo (safe even if unused)
+**/.next/
+**/.turbo/
+
+# ---------------------------
 # .NET
+# ---------------------------
 **/bin/
 **/obj/
 
-# Secrets
+# ---------------------------
+# Local config / secrets
+# ---------------------------
+backend/Properties/launchSettings.json
+backend/appsettings.Development.json
+backend/appsettings.*.json.local
+
+# Env files (keep a sample committed)
+.env
+.env.*
+!.env.example
+
+# If you truly want to keep appsettings.json out of git, leave this line.
+# Otherwise REMOVE it and use dotnet user-secrets or env vars for secrets.
 backend/appsettings.json

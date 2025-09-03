@@ -4,7 +4,7 @@ import type { LoginSchema } from '../../lib/schemas/loginSchema.ts';
 import { loginSchema } from "../../lib/schemas/loginSchema.ts";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Box, Button, Paper, Typography } from '@mui/material';
-import LockOpen from '@mui/icons-material/LockOpen';
+
 import TextInput from '../../app/shared/components/TextInput';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -22,7 +22,7 @@ export default function LoginForm() {
     // Redirect if user is already logged in
     useEffect(() => {
         if (currentUser) {
-            navigate('/home');
+            navigate('/Scan');
         }
     }, [currentUser, navigate]);
 
@@ -31,7 +31,7 @@ export default function LoginForm() {
         loginUser.mutateAsync({username: data.username, password: data.password}, {
             onSuccess: async () => {
                 console.log('Login successful');
-                navigate('/home');
+                navigate('/Scan');
             },
             onError: (error) => {
                 console.log(error);
@@ -68,8 +68,8 @@ export default function LoginForm() {
         <Box display="flex" alignItems='center' justifyContent='center'
             gap={3} color='secondary.main'
         >
-            <LockOpen fontSize='large' />
-            <Typography variant='h4'>Sign in</Typography>
+            
+            <Typography variant='h4' sx={{ color: '#3f3e3eff' }}>Sign in</Typography>
 
 
         </Box>

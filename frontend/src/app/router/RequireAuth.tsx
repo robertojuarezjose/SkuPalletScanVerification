@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAccount } from '../../lib/hook/userAccount';
+import NavBar from "../layout/Navbar";
 
 export default function RequireAuth() {
 
@@ -13,6 +14,10 @@ export default function RequireAuth() {
     if(!currentUser) return <Navigate to='/login' state={{from: location}} />
     
   return (
-    <Outlet/>
+    <>
+      <NavBar/>
+      <Outlet/>
+    </>
+     
   )
 }

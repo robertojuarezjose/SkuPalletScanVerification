@@ -22,22 +22,29 @@ public class JwtService(IConfiguration configuration, UserAccountRepository user
         var audience = configuration["JwtConfig:Audience"];
         var key = configuration["JwtConfig:Key"]!;
 
-        var tokenDescriptor = new SecurityTokenDescriptor
+        // Add whatever you’ll need to read on /currentuser as claims here
+        var claims = new List<Claim>
         {
-            Subject = new ClaimsIdentity(
-            [
-                new Claim(JwtRegisteredClaimNames.Name, request.UserName),
-                new Claim(ClaimTypes.Role, userAccount.Role ?? "User")
-            ]),
-            Issuer = issuer,
-            Audience = audience,
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
-                SecurityAlgorithms.HmacSha512Signature),
+            new(JwtRegisteredClaimNames.Name, request.UserName),
+            new(ClaimTypes.Role, userAccount.Role ?? "User")
+            // e.g. new("displayName", userAccount.DisplayName ?? "")
+            // e.g. new(JwtRegisteredClaimNames.Sub, userAccount.Id.ToString())
         };
 
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var securityToken = tokenHandler.CreateToken(tokenDescriptor);
-        var accessToken = tokenHandler.WriteToken(securityToken);
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Issuer = issuer,
+            Audience = audience,
+            Expires = DateTime.UtcNow.AddHours(12), // important
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                SecurityAlgorithms.HmacSha512Signature)
+        };
+
+        var handler = new JwtSecurityTokenHandler();
+        var token = handler.CreateToken(tokenDescriptor);
+        var accessToken = handler.WriteToken(token);
 
         return new LoginResponseModel
         {
