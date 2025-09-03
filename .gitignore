@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+*.rsuser
+*.sln.docstates
+
+# Logs
+*.log
+
+# Node / Vite
+**/node_modules/
+**/dist/
+**/.vite/
+**/.env*
+npm-debug.log*
+
+# .NET
+**/bin/
+**/obj/
+
+# Secrets
+backend/appsettings.json
