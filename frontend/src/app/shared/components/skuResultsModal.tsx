@@ -66,7 +66,8 @@ const SkuResultsModal: FC<SkuResultsModalProps> = ({ open, palletId, palletNumbe
                   <TableRow>
                     <TableCell sx={{ fontWeight: 600, backgroundColor: 'background.paper' }}>SKU</TableCell>
                     <TableCell sx={{ fontWeight: 600, backgroundColor: 'background.paper' }} align="right">Quantity</TableCell>
-                    <TableCell sx={{ fontWeight: 600, backgroundColor: 'background.paper' }}>Scanned</TableCell>
+                    <TableCell sx={{ fontWeight: 600, backgroundColor: 'background.paper' }} align="right">Scan Count</TableCell>
+                    <TableCell sx={{ fontWeight: 600, backgroundColor: 'background.paper' }}>First Scanned</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -74,6 +75,7 @@ const SkuResultsModal: FC<SkuResultsModalProps> = ({ open, palletId, palletNumbe
                     <TableRow key={s.id} hover>
                       <TableCell>{s.code}</TableCell>
                       <TableCell align="right">{s.quantity}</TableCell>
+                      <TableCell align="right">{typeof s.scanCount === 'number' ? s.scanCount : 0}</TableCell>
                       <TableCell>{s.dateCreated ? new Date(s.dateCreated).toLocaleString() : '-'}</TableCell>
                     </TableRow>
                   ))}

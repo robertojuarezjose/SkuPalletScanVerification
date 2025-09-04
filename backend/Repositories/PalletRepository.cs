@@ -36,7 +36,8 @@ public class PalletRepository
                 p.scan_id as scan_id,
                 p.pallet_number as pallet_number,
                 p.date_created as date_created,
-                cast(coalesce(sum(sk.quantity), 0) as int) as total_quantity
+                cast(coalesce(sum(sk.quantity), 0) as int) as total_quantity,
+                cast(coalesce(sum(sk.ScanCount), 0) as int) as total_scan_count
             from pallet p
             left join sku sk on sk.pallet_id = p.id
             where p.scan_id = @scanId

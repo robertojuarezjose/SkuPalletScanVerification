@@ -107,6 +107,7 @@ public static class SkuEndpoints
 
         // New row
         sku.DateCreated = DateTime.UtcNow;
+        sku.ScanCount = 1;
         await skuRepository.Insert(sku);
         return TypedResults.Ok(sku);
 

@@ -4,6 +4,7 @@ export interface Pallet {
   palletNumber?: string | null;
   dateCreated?: string | null; // ISO string
   totalQuantity?: number;
+  totalScanCount?: number;
 }
 
 export interface PalletCreateRequest {

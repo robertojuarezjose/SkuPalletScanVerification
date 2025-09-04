@@ -30,8 +30,8 @@ public class SkuRepository
     public async Task Insert(Sku sku)
     {
         using var conn = _connectionFactory.Create();
-        var sql = @"insert into sku (code, quantity, pallet_id, date_created)
-                    values (@code, @Quantity, @PalletId, @DateCreated);";
+        var sql = @"insert into sku (code, quantity, pallet_id, date_created, ScanCount)
+                    values (@code, @Quantity, @PalletId, @DateCreated, @ScanCount);";
         await conn.ExecuteAsync(sql, sku);
     }
 

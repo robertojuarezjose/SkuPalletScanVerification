@@ -159,6 +159,7 @@ function Results() {
                               <TableCell sx={{ fontWeight: 600, backgroundColor: 'background.paper' }}>Pallet #</TableCell>
                               <TableCell sx={{ fontWeight: 600, backgroundColor: 'background.paper' }}>Created</TableCell>
                               <TableCell sx={{ fontWeight: 600, backgroundColor: 'background.paper' }} align="right">Total Qty</TableCell>
+                              <TableCell sx={{ fontWeight: 600, backgroundColor: 'background.paper' }} align="right">Scan Count</TableCell>
                               <TableCell sx={{ fontWeight: 600, backgroundColor: 'background.paper' }} align="center">Actions</TableCell>
                             </TableRow>
                           </TableHead>
@@ -168,6 +169,7 @@ function Results() {
                                 <TableCell>{p.palletNumber ?? '-'}</TableCell>
                                 <TableCell>{p.dateCreated ? new Date(p.dateCreated).toLocaleString() : '-'}</TableCell>
                                 <TableCell align="right">{typeof p.totalQuantity === 'number' ? p.totalQuantity : '-'}</TableCell>
+                                <TableCell align="right">{typeof p.totalScanCount === 'number' ? p.totalScanCount : '-'}</TableCell>
                                 <TableCell align="center">
                                   <IconButton
                                     size="small"

@@ -3,6 +3,7 @@ export interface Sku {
   code: string;
   quantity: number;
   palletId: number;
+  scanCount?: number;
   dateCreated?: string | null;
 }
 

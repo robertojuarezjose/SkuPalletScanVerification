@@ -57,6 +57,7 @@ export default function SkuModal({ palletId, palletNumber, open, onClose }: Prop
                 <TableRow>
                   <TableCell sx={{ fontWeight: 600 }}>Code</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Quantity</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Scan Count</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Date Created</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
                 </TableRow>
@@ -66,6 +67,7 @@ export default function SkuModal({ palletId, palletNumber, open, onClose }: Prop
                   <TableRow key={sku.id} hover>
                     <TableCell>{sku.code}</TableCell>
                     <TableCell>{sku.quantity}</TableCell>
+                    <TableCell>{sku.scanCount ?? 0}</TableCell>
                     <TableCell>{sku.dateCreated ? new Date(sku.dateCreated).toLocaleString() : '-'}</TableCell>
                     <TableCell>
                       <Button

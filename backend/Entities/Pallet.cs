@@ -23,5 +23,8 @@ public class Pallet
     [NotMapped]
     public int TotalQuantity { get; set; }
 
+    [NotMapped]
+    public int TotalScanCount { get; set; }
+
 
 }

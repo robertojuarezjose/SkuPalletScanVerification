@@ -1,5 +1,6 @@
 using System.Text;
 using Dapper;
+using Microsoft.AspNetCore.Hosting;
 using MAD.WebApi.Data;
 using MAD.WebApi.Endpoints;
 using MAD.WebApi.IoC;
@@ -9,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://localhost:5065");
 
 // ---------- Services ----------
 builder.Services.AddRepositories();

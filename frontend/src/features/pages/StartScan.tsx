@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Scan } from '../../lib/types/scan';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -35,11 +35,57 @@ function StartScan() {
   const [selectedPallet, setSelectedPallet] = useState<Pallet | null>(null);
   const [scanInput, setScanInput] = useState<string>('');
   const scanSku = useScanSku();
+  const { isPending, mutate } = scanSku;
+  const mutateRef = useRef(mutate);
+  const isPendingRef = useRef(isPending);
   const [palletNumberInput, setPalletNumberInput] = useState<string>('');
   const [skuModalOpen, setSkuModalOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState<string>('');
+  const debounceTimerRef = useRef<number | null>(null);
+
+  useEffect(() => { mutateRef.current = mutate; }, [mutate]);
+  useEffect(() => { isPendingRef.current = isPending; }, [isPending]);
+
+  const isValidScan = (value?: string | null) => {
+    const v = value?.trim();
+    if (!v) return false;
+    const pattern = /^(?:P([^PQ\r\n]+)Q(\d+)|Q(\d+)P([^PQ\r\n]+))$/i;
+    return pattern.test(v);
+  };
+
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+
+    const value = scanInput?.trim();
+    if (!isValidScan(value)) return;
+
+    debounceTimerRef.current = window.setTimeout(() => {
+      if (isPendingRef.current) return;
+      if (!selectedPallet?.id) {
+        toast.error('Select a pallet before scanning');
+        return;
+      }
+
+      mutateRef.current(
+        { palletId: selectedPallet.id, scanField: value },
+        {
+          onSuccess: () => setScanInput(''),
+        }
+      );
+    }, 2000);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+    };
+  }, [scanInput, selectedPallet?.id]);
 
   return (
     <Box sx={{ pt: 10, px: 2 }}>
@@ -103,18 +149,42 @@ function StartScan() {
                     onChange={(e) => {
                       const value = (e.target as HTMLInputElement).value;
                       setScanInput(value);
-                      if (!selectedPallet?.id && value.includes('Q') && value.includes('P')) {
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        if (debounceTimerRef.current) {
+                          clearTimeout(debounceTimerRef.current);
+                          debounceTimerRef.current = null;
+                        }
+                        const value = scanInput?.trim();
+                        if (!isValidScan(value)) return;
+                        if (isPendingRef.current) return;
+                        if (!selectedPallet?.id) {
+                          toast.error('Select a pallet before scanning');
+                          return;
+                        }
+                        mutateRef.current(
+                          { palletId: selectedPallet.id, scanField: value! },
+                          { onSuccess: () => setScanInput('') }
+                        );
+                      }
+                    }}
+                    onBlur={() => {
+                      if (debounceTimerRef.current) {
+                        clearTimeout(debounceTimerRef.current);
+                        debounceTimerRef.current = null;
+                      }
+                      const value = scanInput?.trim();
+                      if (!isValidScan(value)) return;
+                      if (isPendingRef.current) return;
+                      if (!selectedPallet?.id) {
                         toast.error('Select a pallet before scanning');
                         return;
                       }
-                      if (selectedPallet?.id && value.includes('Q') && value.includes('P')) {
-                        scanSku.mutate(
-                          { palletId: selectedPallet.id, scanField: value },
-                          {
-                            onSuccess: () => setScanInput(''),
-                          }
-                        );
-                      }
+                      mutateRef.current(
+                        { palletId: selectedPallet.id, scanField: value! },
+                        { onSuccess: () => setScanInput('') }
+                      );
                     }}
                   />
                   <Button
