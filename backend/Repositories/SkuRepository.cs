@@ -48,7 +48,8 @@ public class SkuRepository
                     set code = @code,
                     quantity = @Quantity,
                     pallet_id = @PalletId,
-                    date_created = @DateCreated
+                    date_created = @DateCreated,
+                    ScanCount = @ScanCount
                     where id = @Id";
         await conn.ExecuteAsync(sql, sku);
     }

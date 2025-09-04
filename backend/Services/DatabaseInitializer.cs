@@ -64,16 +64,33 @@ begin
 end
 ;
 
-if not exists (select * from sysobjects where name='sku' and xtype='U')
-begin
-    create table sku (
-        id int identity(1,1) primary key,
-        code nvarchar(100) null,
-        quantity int null,
-        pallet_id int null,
-        date_created datetime2 not null constraint DF_sku_date_created default (sysutcdatetime())
+-- Create table if it doesn't exist (now includes ScanCount)
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'sku' AND schema_id = SCHEMA_ID('dbo')
+)
+BEGIN
+    CREATE TABLE dbo.sku
+    (
+        id           INT IDENTITY(1,1) PRIMARY KEY,
+        code         NVARCHAR(100) NULL,
+        quantity     INT NULL,
+        pallet_id    INT NULL,
+        date_created DATETIME2 NOT NULL CONSTRAINT DF_sku_date_created DEFAULT (sysutcdatetime()),
+        ScanCount    INT NOT NULL CONSTRAINT DF_sku_ScanCount DEFAULT (1)
     );
-end
+END
+ELSE
+BEGIN
+    -- Table exists: add ScanCount only if missing, backfilling existing rows with 1
+    IF COL_LENGTH('dbo.sku', 'ScanCount') IS NULL
+    BEGIN
+        ALTER TABLE dbo.sku
+        ADD ScanCount INT NOT NULL CONSTRAINT DF_sku_ScanCount DEFAULT (1) WITH VALUES;
+    END
+END
+
 ;
 
 -- Rename old column 'sku' to 'code' if table exists and column hasn't been renamed yet

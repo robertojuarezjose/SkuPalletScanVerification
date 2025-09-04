@@ -20,6 +20,9 @@ public class Sku
     [Column("pallet_id")]
     public required int PalletId  { get; set; }
 
+    [Column("ScanCount")]
+    public int ScanCount { get; set; }
+
     [Column("Date_created")]
     public DateTime? DateCreated { get; set; }
 

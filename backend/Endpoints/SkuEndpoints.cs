@@ -98,6 +98,8 @@ public static class SkuEndpoints
         if (existingSku is not null)
         {
             var currentQty = existingSku.Quantity;
+            var CurrentScanCount = existingSku.ScanCount;
+            existingSku.ScanCount = checked(CurrentScanCount + 1);
             existingSku.Quantity = checked(currentQty + quantity);
             await skuRepository.Update(existingSku);
             return TypedResults.Ok(existingSku);
