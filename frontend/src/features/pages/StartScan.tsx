@@ -33,7 +33,8 @@ function StartScan() {
   const createPallet = useCreatePallet();
   const deletePallet = useDeletePallet();
   const [selectedPallet, setSelectedPallet] = useState<Pallet | null>(null);
-  const [scanInput, setScanInput] = useState<string>('');
+  const [skuCodeInput, setSkuCodeInput] = useState<string>('');
+  const [quantityInput, setQuantityInput] = useState<string>('');
   const scanSku = useScanSku();
   const { isPending, mutate } = scanSku;
   const mutateRef = useRef(mutate);
@@ -43,49 +44,50 @@ function StartScan() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState<string>('');
-  const debounceTimerRef = useRef<number | null>(null);
+  const lastAttemptRef = useRef<{ sku: string; qty: string } | null>(null);
 
   useEffect(() => { mutateRef.current = mutate; }, [mutate]);
   useEffect(() => { isPendingRef.current = isPending; }, [isPending]);
 
-  const isValidScan = (value?: string | null) => {
-    const v = value?.trim();
-    if (!v) return false;
-    const pattern = /^(?:P([^PQ\r\n]+)Q(\d+)|Q(\d+)P([^PQ\r\n]+))$/i;
-    return pattern.test(v);
-  };
-
+  // Auto-submit when both fields are non-empty and in correct format
   useEffect(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = null;
-    }
+    const sku = skuCodeInput.trim();
+    const qty = quantityInput.trim();
 
-    const value = scanInput?.trim();
-    if (!isValidScan(value)) return;
+    if (!sku || !qty) return;
+    if (!selectedPallet?.id) return;
+    if (isPendingRef.current) return;
 
-    debounceTimerRef.current = window.setTimeout(() => {
-      if (isPendingRef.current) return;
-      if (!selectedPallet?.id) {
-        toast.error('Select a pallet before scanning');
+    const timerId = window.setTimeout(() => {
+      // Validate formats to match backend: 'P...' and 'Q...'
+      const skuValid = sku.length >= 2 && (sku[0] === 'P' || sku[0] === 'p');
+      const qtyValid = qty.length >= 2 && (qty[0] === 'Q' || qty[0] === 'q');
+
+      if (!skuValid || !qtyValid) {
+        const last = lastAttemptRef.current;
+        const sameAsLast = last && last.sku === sku && last.qty === qty;
+        if (!sameAsLast) {
+          toast.error(!skuValid ? 'Incorrect SKU code format' : 'Incorrect quantity format');
+          lastAttemptRef.current = { sku, qty };
+        }
         return;
       }
 
+      // Submit
       mutateRef.current(
-        { palletId: selectedPallet.id, scanField: value },
+        { PalletId: selectedPallet.id, SkuCode: sku, Quantity: qty },
         {
-          onSuccess: () => setScanInput(''),
+          onSuccess: () => {
+            setSkuCodeInput('');
+            setQuantityInput('');
+            lastAttemptRef.current = null;
+          },
         }
       );
     }, 2000);
 
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = null;
-      }
-    };
-  }, [scanInput, selectedPallet?.id]);
+    return () => clearTimeout(timerId);
+  }, [skuCodeInput, quantityInput, selectedPallet?.id]);
 
   return (
     <Box sx={{ pt: 10, px: 2 }}>
@@ -143,48 +145,26 @@ function StartScan() {
                 <Stack direction="row" spacing={1} alignItems="center">
                   <TextField
                     size="small"
-                    label="Scan input"
-                    sx={{ width: 320 }}
-                    value={scanInput}
-                    onChange={(e) => {
-                      const value = (e.target as HTMLInputElement).value;
-                      setScanInput(value);
-                    }}
+                    label="SKU Code (starts with P)"
+                    sx={{ width: 260 }}
+                    value={skuCodeInput}
+                    onChange={(e) => setSkuCodeInput((e.target as HTMLInputElement).value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        if (debounceTimerRef.current) {
-                          clearTimeout(debounceTimerRef.current);
-                          debounceTimerRef.current = null;
-                        }
-                        const value = scanInput?.trim();
-                        if (!isValidScan(value)) return;
-                        if (isPendingRef.current) return;
-                        if (!selectedPallet?.id) {
-                          toast.error('Select a pallet before scanning');
-                          return;
-                        }
-                        mutateRef.current(
-                          { palletId: selectedPallet.id, scanField: value! },
-                          { onSuccess: () => setScanInput('') }
-                        );
+                        setSkuCodeInput((e.target as HTMLInputElement).value.trim());
                       }
                     }}
-                    onBlur={() => {
-                      if (debounceTimerRef.current) {
-                        clearTimeout(debounceTimerRef.current);
-                        debounceTimerRef.current = null;
+                  />
+                  <TextField
+                    size="small"
+                    label="Quantity (starts with Q)"
+                    sx={{ width: 200 }}
+                    value={quantityInput}
+                    onChange={(e) => setQuantityInput((e.target as HTMLInputElement).value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setQuantityInput((e.target as HTMLInputElement).value.trim());
                       }
-                      const value = scanInput?.trim();
-                      if (!isValidScan(value)) return;
-                      if (isPendingRef.current) return;
-                      if (!selectedPallet?.id) {
-                        toast.error('Select a pallet before scanning');
-                        return;
-                      }
-                      mutateRef.current(
-                        { palletId: selectedPallet.id, scanField: value! },
-                        { onSuccess: () => setScanInput('') }
-                      );
                     }}
                   />
                   <Button

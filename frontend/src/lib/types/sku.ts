@@ -8,8 +8,9 @@ export interface Sku {
 }
 
 export interface SkuScanRequest {
-  palletId: number;
-  scanField: string;
+  PalletId: number;
+  SkuCode: string; // expects leading 'P'
+  Quantity: string; // expects leading 'Q'
 }
 
 

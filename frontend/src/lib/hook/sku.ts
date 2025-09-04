@@ -28,7 +28,7 @@ export const useScanSku = () => {
     onSuccess: async (_created: Sku, variables) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['skus'] }),
-        queryClient.invalidateQueries({ queryKey: ['skusByPallet', variables.palletId] }),
+        queryClient.invalidateQueries({ queryKey: ['skusByPallet', variables.PalletId] }),
       ]);
       toast.success('SKU scanned');
     },

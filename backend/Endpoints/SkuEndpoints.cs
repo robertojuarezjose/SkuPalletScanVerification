@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using System.Linq;
 using MAD.WebApi.Entities;
 using MAD.WebApi.Models;
@@ -58,27 +57,37 @@ public static class SkuEndpoints
             return TypedResults.BadRequest("Pallet not found");
         }
 
-        if (string.IsNullOrWhiteSpace(request.ScanField))
+        if (string.IsNullOrWhiteSpace(request.SkuCode))
         {
-            return TypedResults.BadRequest("ScanField is required");
+            return TypedResults.BadRequest("SkuCode is required");
         }
 
-        var s = request.ScanField.Trim();
-        var m = Regex.Match(
-            s,
-            @"^(?:P(?<sku>[^PQ\r\n]+)Q(?<qty>\d+)|Q(?<qty>\d+)P(?<sku>[^PQ\r\n]+))$",
-            RegexOptions.IgnoreCase);
-
-        if (!m.Success)
+        if (string.IsNullOrWhiteSpace(request.Quantity))
         {
-            return TypedResults.BadRequest("ScanField is invalid. Expected 'P<sku>Q<qty>' or 'Q<qty>P<sku>'.");
+            return TypedResults.BadRequest("Quantity is required");
         }
 
-        var skuNumber = m.Groups["sku"].Value.Trim();
-
-        if (!int.TryParse(m.Groups["qty"].Value, out var quantity) || quantity <= 0)
+        var skuCodeRaw = request.SkuCode.Trim();
+        if (skuCodeRaw.Length < 2 || !(skuCodeRaw[0] == 'P' || skuCodeRaw[0] == 'p'))
         {
-            return TypedResults.BadRequest("Quantity must be a positive integer.");
+            return TypedResults.BadRequest("SkuCode must start with 'P'.");
+        }
+
+        var quantityRaw = request.Quantity.Trim();
+        if (quantityRaw.Length < 2 || !(quantityRaw[0] == 'Q' || quantityRaw[0] == 'q'))
+        {
+            return TypedResults.BadRequest("Quantity must start with 'Q'.");
+        }
+
+        var skuNumber = skuCodeRaw.Substring(1).Trim();
+        if (string.IsNullOrWhiteSpace(skuNumber))
+        {
+            return TypedResults.BadRequest("SkuCode value after 'P' is required.");
+        }
+
+        if (!int.TryParse(quantityRaw.Substring(1), out var quantity) || quantity <= 0)
+        {
+            return TypedResults.BadRequest("Quantity after 'Q' must be a positive integer.");
         }
 
         var sku = new Sku

@@ -18,6 +18,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import type { Scan } from '../../lib/types/scan';
 import {useScanResultsById} from '../../lib/hook/results';
 import SkuResultsModal from '../../app/shared/components/skuResultsModal';
+import ExportResultsExcel from '../../app/shared/components/ExportResultsExcel';
 import { useState } from 'react';
 import TablePagination from '@mui/material/TablePagination';
 import TextField from '@mui/material/TextField';
@@ -85,7 +86,10 @@ function Results() {
                   Finished: {formatIfValid(results?.dateFinished) ?? 'No'}
                 </Typography>
               </Box>
-              <Button variant="outlined" onClick={() => navigate(-1)}>Back</Button>
+              <Stack direction="row" spacing={1}>
+                <ExportResultsExcel results={results} />
+                <Button variant="outlined" onClick={() => navigate(-1)}>Back</Button>
+              </Stack>
             </Stack>
 
             <Divider sx={{ my: 2 }} />
