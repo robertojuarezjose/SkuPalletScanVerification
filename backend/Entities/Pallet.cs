@@ -20,5 +20,8 @@ public class Pallet
     [Column("Date_created")]
     public DateTime? DateCreated { get; set; }
 
+    [NotMapped]
+    public int TotalQuantity { get; set; }
+
 
 }

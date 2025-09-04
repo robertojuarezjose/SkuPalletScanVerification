@@ -60,7 +60,7 @@ public static class PalletEndpoints
             return TypedResults.BadRequest("Scan not found");
         }
 
-        if (palletRequest.PalletNumber == null)
+        if (palletRequest.PalletNumber == null || palletRequest.PalletNumber == "")
         {
             palletRequest.PalletNumber = palletRepository.GetNextPalletNumber(palletRequest.ScanId);
         }

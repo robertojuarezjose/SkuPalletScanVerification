@@ -3,7 +3,6 @@ import { NavLink } from "react-router-dom";
 import { Observer } from "mobx-react-lite";
 import { useAccount } from "../../lib/hook/userAccount";
 import { store } from "../../lib/stores/store";
-import { navLinks } from "../../lib/utils/links";
 
 export default function NavBar() {
     const { currentUser, logoutUser } = useAccount();
@@ -44,26 +43,7 @@ export default function NavBar() {
                                 </Observer>
                             </MenuItem>
                         </Box>
-                        <Box sx={{ display: 'flex', gap: 2 }}>
-                            {
-                                navLinks.map((link) => (
-                                    <MenuItem 
-                                        key={link.href} 
-                                        component={NavLink} 
-                                        to={link.href}
-                                        sx={{
-                                            '&.active': {
-                                                borderBottom: '2px solid white',
-                                                borderRadius: 0
-                                            }
-                                        }}
-                                    >
-                                        {link.label}
-                                    </MenuItem>
-                                ))
-                            }
-                            
-                        </Box>
+                        
                         <Box display='flex' alignItems='center'>
                             {currentUser ? (
                                 <Box display="flex" gap={2}>

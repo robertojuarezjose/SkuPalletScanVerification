@@ -16,7 +16,7 @@ public class ScanResults
 
     public int TotalPieces { get; set; }
     public DateTime DateCreated { get; set; }
-    public DateTime DateFinished { get; set; }
+    public DateTime? DateFinished { get; set; }
 
     public Pallet[] Pallets { get; set; } = [];
 

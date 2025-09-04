@@ -10,7 +10,13 @@ import { StoreContext, store } from './lib/stores/store.ts'
 import { router } from './app/router/Routes.tsx'
 
 const queryClient = new QueryClient()
-const theme = createTheme()
+const theme = createTheme({
+  palette: {
+    background: {
+      default: '#e3e7e9', // subtle body background for contrast with Paper
+    },
+  },
+})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

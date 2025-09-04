@@ -1,8 +1,8 @@
-export interface scan {
-    id: string;
-    
-  }
-  
-  export interface scanFormValues {
-    scanId: string;
-  } 
+export interface Scan {
+  id: number;
+  scanControlNumber?: string | null;
+  scanDate?: string | null;
+  scanFinished?: boolean | null;
+  scanFinishedDate?: string | null;
+}
+

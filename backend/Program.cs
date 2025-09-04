@@ -37,16 +37,8 @@ var issuer    = builder.Configuration["JwtConfig:Issuer"];
 var audience  = builder.Configuration["JwtConfig:Audience"];
 var keyConfig = builder.Configuration["JwtConfig:Key"]!;
 
-byte[] keyBytes;
-try
-{
-    keyBytes = Convert.FromBase64String(keyConfig); // recommended
-}
-catch
-{
-    keyBytes = Encoding.UTF8.GetBytes(keyConfig);   // fallback if not Base64
-}
-var signingKey = new SymmetricSecurityKey(keyBytes);
+// IMPORTANT: Must match JwtService signing exactly (UTF8 of raw string)
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyConfig));
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -133,7 +125,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+if (app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("frontend");
 app.UseAuthentication();   // must be before UseAuthorization

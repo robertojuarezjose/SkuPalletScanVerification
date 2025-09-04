@@ -65,9 +65,33 @@ public static class ScanEndpoints
         return TypedResults.Ok(scanResults);
     }
     
-    private static async Task<Ok<Scan[]>> Get(ScanRepository scanRepository)
+    private static async Task<Ok<Scan[]>> Get(HttpRequest request, ScanRepository scanRepository)
     {
-        var scan = await scanRepository.Get();
+        string? status = request.Query["status"].ToString();
+        DateTime? fromDate = null;
+        DateTime? toDate = null;
+
+        if (DateTime.TryParse(request.Query["from"], out var fromParsed))
+        {
+            fromDate = fromParsed.Date;
+        }
+        if (DateTime.TryParse(request.Query["to"], out var toParsed))
+        {
+            toDate = toParsed.Date;
+        }
+
+        // If both dates are null and status is not 'pending', default to today's date for both
+        var normalized = status?.Trim().ToLowerInvariant();
+        if ((fromDate is null && toDate is null) && normalized != "pending")
+        {
+            var today = DateTime.UtcNow.Date;
+            fromDate = today;
+            toDate = today;
+        }
+
+        var scan = (fromDate is null && toDate is null && string.IsNullOrWhiteSpace(status))
+            ? await scanRepository.Get()
+            : await scanRepository.GetByFilters(status, fromDate, toDate);
         return TypedResults.Ok(scan);
     }
 
