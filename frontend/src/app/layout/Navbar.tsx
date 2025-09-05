@@ -18,7 +18,7 @@ export default function NavBar() {
                             <MenuItem component={NavLink} to='/' sx={{ display: 'flex', gap: 2 }}>
                                
                                 <Typography sx={{position: 'relative'}} variant="h4" fontWeight='bold'>
-                                    Scan System
+                                    TT FOWARDING
                                 </Typography>
                                 <Observer>
                                     {() => store.uiStore.isLoading ? (

@@ -45,9 +45,34 @@ function StartScan() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState<string>('');
   const lastAttemptRef = useRef<{ sku: string; qty: string } | null>(null);
+  const skuInputRef = useRef<HTMLInputElement | null>(null);
+  const quantityInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => { mutateRef.current = mutate; }, [mutate]);
   useEffect(() => { isPendingRef.current = isPending; }, [isPending]);
+
+  // Focus SKU input when a pallet is selected or added
+  useEffect(() => {
+    if (selectedPallet) {
+      skuInputRef.current?.focus();
+    }
+  }, [selectedPallet]);
+
+  // After entering a valid SKU, move focus to Quantity automatically (1s delay)
+  useEffect(() => {
+    if (!selectedPallet) return;
+    if (quantityInput) return;
+
+    const timerId = window.setTimeout(() => {
+      const sku = skuCodeInput.trim();
+      const skuValid = sku.length >= 2 && (sku[0] === 'P' || sku[0] === 'p');
+      if (skuValid) {
+        quantityInputRef.current?.focus();
+      }
+    }, 1000);
+
+    return () => clearTimeout(timerId);
+  }, [skuCodeInput, selectedPallet, quantityInput]);
 
   // Auto-submit when both fields are non-empty and in correct format
   useEffect(() => {
@@ -81,6 +106,7 @@ function StartScan() {
             setSkuCodeInput('');
             setQuantityInput('');
             lastAttemptRef.current = null;
+            skuInputRef.current?.focus();
           },
         }
       );
@@ -148,10 +174,14 @@ function StartScan() {
                     label="SKU Code (starts with P)"
                     sx={{ width: 260 }}
                     value={skuCodeInput}
+                    inputRef={skuInputRef}
                     onChange={(e) => setSkuCodeInput((e.target as HTMLInputElement).value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         setSkuCodeInput((e.target as HTMLInputElement).value.trim());
+                        window.setTimeout(() => {
+                          quantityInputRef.current?.focus();
+                        }, 1000);
                       }
                     }}
                   />
@@ -160,6 +190,7 @@ function StartScan() {
                     label="Quantity (starts with Q)"
                     sx={{ width: 200 }}
                     value={quantityInput}
+                    inputRef={quantityInputRef}
                     onChange={(e) => setQuantityInput((e.target as HTMLInputElement).value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {

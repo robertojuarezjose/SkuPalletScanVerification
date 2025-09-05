@@ -2,6 +2,8 @@ import Button from '@mui/material/Button';
 import ExcelJS from 'exceljs';
 import { useState } from 'react';
 import SkuApi from '../../../lib/api/skuApi';
+import ScanApi from '../../../lib/api/scanApi';
+import type { SkuScanSummary } from '../../../lib/types/sku';
 import type { ScanResults } from '../../../lib/types/results';
 import type { Sku } from '../../../lib/types/sku';
 
@@ -27,6 +29,15 @@ function ExportResultsExcel({ results }: Props) {
 
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Report');
+
+      // Custom header row
+      const titleRow = worksheet.addRow(['TT FORWARDING', null, 'Scan Report']);
+      titleRow.font = { bold: true, size: 14 };
+      titleRow.alignment = { vertical: 'middle' };
+
+      // Two spacer rows before the original report content
+      worksheet.addRow([]);
+      worksheet.addRow([]);
 
       const control = `Control #${results.scanControlNumber}`;
       const started = formatIfValid(results.dateCreated) ?? '-';
@@ -89,6 +100,32 @@ function ExportResultsExcel({ results }: Props) {
         }
 
         worksheet.addRow([]);
+      }
+
+      // Two empty rows after the last pallet
+      worksheet.addRow([]);
+      worksheet.addRow([]);
+
+      // Fetch SKU summary by scan and append with orange headers
+      let summary: SkuScanSummary[] = [];
+      try {
+        summary = await ScanApi.getSkuSummary(results.scanId);
+      } catch {
+        summary = [];
+      }
+
+      if (summary.length > 0) {
+        const summaryHeader = worksheet.addRow(['SKU', 'Total Quantity', 'Total Scans']);
+        summaryHeader.font = { bold: true };
+        summaryHeader.alignment = { vertical: 'middle' };
+        // Orange header fill
+        for (let i = 1; i <= 3; i += 1) {
+          summaryHeader.getCell(i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFA500' } };
+        }
+
+        for (const row of summary) {
+          worksheet.addRow([row.code ?? '-', row.quantity ?? 0, row.scanCount ?? 0]);
+        }
       }
 
       const buffer = await workbook.xlsx.writeBuffer();

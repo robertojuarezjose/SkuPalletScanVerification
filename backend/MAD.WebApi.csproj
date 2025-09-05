@@ -13,4 +13,18 @@
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="*" />
 	</ItemGroup>
 
+	<PropertyGroup>
+		<SpaDistPath>$(MSBuildProjectDirectory)/../frontend/dist</SpaDistPath>
+	</PropertyGroup>
+
+	<Target Name="CopySpaDistToWwwroot" AfterTargets="Publish" Condition="Exists('$(SpaDistPath)')">
+		<Message Text="Copying SPA from $(SpaDistPath) to $(PublishDir)wwwroot" Importance="High" />
+		<MakeDir Directories="$(PublishDir)wwwroot" />
+		<ItemGroup>
+			<SpaDistFiles Include="$(SpaDistPath)/**" />
+		</ItemGroup>
+		<Copy SourceFiles="@(SpaDistFiles)"
+			DestinationFiles="@(SpaDistFiles->'$(PublishDir)wwwroot/%(RecursiveDir)%(Filename)%(Extension)')"
+			SkipUnchangedFiles="true" />
+	</Target>
 </Project>

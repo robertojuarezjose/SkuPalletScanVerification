@@ -13,4 +13,10 @@ export interface SkuScanRequest {
   Quantity: string; // expects leading 'Q'
 }
 
+export interface SkuScanSummary {
+  code: string | null;
+  quantity: number | null;
+  scanCount: number | null;
+}
+
 

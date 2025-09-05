@@ -1,6 +1,7 @@
 import requests from './agent';
 import type { Scan } from '../types/scan';
 import type { ScanResults } from '../types/results';
+import type { SkuScanSummary } from '../types/sku';
 
 const ScanApi = {
   getAll: async (
@@ -32,6 +33,9 @@ const ScanApi = {
   },
   getResults: async (scanId: number) => {
     return await requests.get<ScanResults>(`/Scan/general-scan-results/${scanId}`);
+  },
+  getSkuSummary: async (scanId: number) => {
+    return await requests.get<SkuScanSummary[]>(`/Scan/skus/${scanId}`);
   },
 };
 

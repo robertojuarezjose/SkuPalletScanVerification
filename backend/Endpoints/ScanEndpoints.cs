@@ -1,4 +1,5 @@
 ﻿using MAD.WebApi.Entities;
+using MAD.WebApi.Models;
 using MAD.WebApi.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -14,10 +15,17 @@ public static class ScanEndpoints
         scanGroup.MapGet("", Get);
         scanGroup.MapGet("general-scan-results/{scanId:int}", GetScanResults);
         scanGroup.MapGet("{id:int}", GetById);
+        scanGroup.MapGet("skus/{scanId:int}", GetSkusScanResults);
         scanGroup.MapPost("", StartScan);
         scanGroup.MapPut("/finish/{scanId:int}", FinishScan);
         scanGroup.MapPut("/continue/{scanId:int}", ContinueScan);
         scanGroup.MapDelete("{id:int}", Delete);
+    }
+
+    private static async Task<Ok<SkuScanResultsResponse[]>> GetSkusScanResults(int scanId, ScanRepository scanRepository, SkuRepository skuRepository)
+    {
+        var skus = await skuRepository.GetSkusResultsByScanId(scanId);
+        return TypedResults.Ok(skus);
     }
 
     private static async Task<Results<Ok, NotFound>> ContinueScan(int scanId, ScanRepository scanRepository)

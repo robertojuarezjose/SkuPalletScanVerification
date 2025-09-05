@@ -10,7 +10,11 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http://localhost:5065");
+// Bindings are controlled by IIS/ANCM in production; avoid hardcoding there
+if (builder.Environment.IsDevelopment())
+{
+    builder.WebHost.UseUrls("http://localhost:5065");
+}
 
 // ---------- Services ----------
 builder.Services.AddRepositories();
@@ -46,7 +50,7 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false; // set true in prod behind HTTPS
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
         options.SaveToken = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -113,12 +117,21 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
-    await initializer.InitializeAsync();
+    try
+    {
+        await initializer.InitializeAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Startup] Database initialization failed: {ex.Message}");
+        // Continue running so non-DB endpoints and dev can still start
+    }
 }
 
 // ---------- Middleware ----------
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -137,9 +150,15 @@ app.UseAuthentication();   // must be before UseAuthorization
 app.UseAuthorization();
 
 // ---------- Endpoints ----------
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapPalletEndpoints();
 app.MapSkuEndpoints();
 app.MapScanEndpoints();
 app.MapAuthenticationEndpoints();
+
+// SPA fallback to index.html
+app.MapFallbackToFile("index.html");
 
 await app.RunAsync();
