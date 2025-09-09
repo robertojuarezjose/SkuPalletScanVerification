@@ -122,7 +122,7 @@ end
 ";
 
         // Note: stored as plain for now to match JwtService comparison; hash later.
-        var parameters = new
+        var adminParameters = new
         {
             fullName = "Admin User",
             userName = "admin",
@@ -130,7 +130,10 @@ end
             role = "Administrator"
         };
 
-        await connection.ExecuteAsync(upsertUserSql, parameters);
+        await connection.ExecuteAsync(upsertUserSql, adminParameters);
+
+      
+
     }
 }
 

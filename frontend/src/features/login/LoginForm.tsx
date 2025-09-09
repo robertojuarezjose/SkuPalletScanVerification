@@ -11,13 +11,18 @@ import { useEffect } from 'react';
 
 
 export default function LoginForm() {
-    const {loginUser, currentUser} = useAccount();
+    const {loginUser, currentUser, checkAuth} = useAccount();
     const navigate = useNavigate();
     const {control, handleSubmit, formState: {isValid, isSubmitting}} = useForm<LoginSchema>({
         mode: 'onTouched',
         resolver: zodResolver(loginSchema),
         defaultValues: { username: '', password: '' },
     });
+
+    // Check authentication once when component mounts
+    useEffect(() => {
+        checkAuth();
+    }, []);
 
     // Redirect if user is already logged in
     useEffect(() => {
@@ -26,18 +31,16 @@ export default function LoginForm() {
         }
     }, [currentUser, navigate]);
 
-    const onSubmit =  (data: LoginSchema) => {
+    const onSubmit = async (data: LoginSchema) => {
         console.log(data);
-        loginUser.mutateAsync({username: data.username, password: data.password}, {
-            onSuccess: async () => {
-                console.log('Login successful');
-                navigate('/Scan');
-            },
-            onError: (error) => {
-                console.log(error);
-            }
-        });
-
+        try {
+            await loginUser.mutateAsync({username: data.username, password: data.password});
+            console.log('Login successful');
+            navigate('/Scan');
+        } catch (error) {
+            // Error is already handled by the mutation's onError callback
+            console.log('Login failed:', error);
+        }
     }
 
 

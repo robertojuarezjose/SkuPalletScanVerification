@@ -63,3 +63,4 @@ backend/appsettings.*.json.local
 # If you truly want to keep appsettings.json out of git, leave this line.
 # Otherwise REMOVE it and use dotnet user-secrets or env vars for secrets.
 backend/appsettings.json
+backend/appsettings.Production.json

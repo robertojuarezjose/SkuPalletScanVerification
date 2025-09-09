@@ -21,9 +21,12 @@ const responseBody = <T>(response: AxiosResponse<T>) => response.data;
 
 // Function to check if we should show error toasts
 const shouldShowToast = () => {
-    // Check if current path is login page
-    const isAuthPage = window.location.pathname === '/' || 
-                      window.location.pathname === '/login';
+    // Check if current path is login page (handle both dev and production paths)
+    const pathname = window.location.pathname;
+    const isAuthPage = pathname === '/' || 
+                      pathname === '/login' ||
+                      pathname === '/PalletScan/' ||
+                      pathname === '/PalletScan/login';
     return !isAuthPage;
 };
 
@@ -65,6 +68,7 @@ agent.interceptors.response.use(
                     }
                     break;
                 case 401:
+                    // Don't show toast for 401 on login page - it's expected
                     if(showToast) toast.error('Unauthorized');
                     break;
                 case 403:
