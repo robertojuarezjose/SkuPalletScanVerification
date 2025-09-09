@@ -17,6 +17,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { usePalletsByScan, useCreatePallet, useDeletePallet } from '../../lib/hook/pallet';
 import { useScanSku } from '../../lib/hook/sku';
+import { useFinishScan } from '../../lib/hook/scan';
 import type { Pallet } from '../../lib/types/pallet';
 import { toast } from 'react-toastify';
 import SkuModal from '../../app/shared/components/skuModal';
@@ -32,6 +33,7 @@ function StartScan() {
   const { data: pallets } = usePalletsByScan(scanId);
   const createPallet = useCreatePallet();
   const deletePallet = useDeletePallet();
+  const finishScan = useFinishScan();
   const [selectedPallet, setSelectedPallet] = useState<Pallet | null>(null);
   const [skuCodeInput, setSkuCodeInput] = useState<string>('');
   const [quantityInput, setQuantityInput] = useState<string>('');
@@ -110,7 +112,7 @@ function StartScan() {
           },
         }
       );
-    }, 2000);
+    }, 500);
 
     return () => clearTimeout(timerId);
   }, [skuCodeInput, quantityInput, selectedPallet?.id]);
@@ -122,12 +124,30 @@ function StartScan() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
           <Card variant="outlined">
             <CardContent>
-              <Typography variant="h5" sx={{ mb: 2 }}>Scan Control #</Typography>
-              {scan ? (
-                <Typography variant="h6">{scan.scanControlNumber}</Typography>
-              ) : (
-                <Typography variant="body1">No scan data provided.</Typography>
-              )}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                  <Typography variant="h5" sx={{ mb: 2 }}>Scan Control #</Typography>
+                  {scan ? (
+                    <Typography variant="h6">{scan.scanControlNumber}</Typography>
+                  ) : (
+                    <Typography variant="body1">No scan data provided.</Typography>
+                  )}
+                </Box>
+                <Button
+                  variant="contained"
+                  color="success"
+                  disabled={!scanId || finishScan.isPending}
+                  onClick={() =>
+                    finishScan.mutate(scanId as number, {
+                      onSuccess: () => {
+                        navigate('/Scan');
+                      },
+                    })
+                  }
+                >
+                  {finishScan.isPending ? 'Finishing...' : 'Finish Scan'}
+                </Button>
+              </Box>
             </CardContent>
           </Card>
           <Card variant="outlined">

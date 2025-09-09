@@ -30,7 +30,7 @@ export const useAccount = () => {
         onError: (error: unknown) => {
             toast.error('Login failed');
             // Don't log 401 errors to console - they're expected for invalid credentials
-            if ((error as any)?.response?.status !== 401) {
+            if ((error as { response?: { status?: number } })?.response?.status !== 401) {
                 console.error('Login error:', error);
             }
         }
@@ -87,9 +87,9 @@ export const useAccount = () => {
             queryFn: async () => {
                 try {
                     return await AccountApi.current();
-                } catch (error: any) {
+                } catch (error: unknown) {
                     // Handle 401 gracefully - user is not authenticated
-                    if (error?.response?.status === 401) {
+                    if ((error as { response?: { status?: number } })?.response?.status === 401) {
                         return null;
                     }
                     throw error;
