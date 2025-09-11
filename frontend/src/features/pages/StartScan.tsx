@@ -71,7 +71,7 @@ function StartScan() {
       if (skuValid) {
         quantityInputRef.current?.focus();
       }
-    }, 1000);
+    }, 400);
 
     return () => clearTimeout(timerId);
   }, [skuCodeInput, selectedPallet, quantityInput]);
@@ -112,7 +112,7 @@ function StartScan() {
           },
         }
       );
-    }, 500);
+    }, 300);
 
     return () => clearTimeout(timerId);
   }, [skuCodeInput, quantityInput, selectedPallet?.id]);
@@ -195,6 +195,7 @@ function StartScan() {
                     sx={{ width: 260 }}
                     value={skuCodeInput}
                     inputRef={skuInputRef}
+                    disabled={!selectedPallet}
                     onChange={(e) => setSkuCodeInput((e.target as HTMLInputElement).value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -211,6 +212,7 @@ function StartScan() {
                     sx={{ width: 200 }}
                     value={quantityInput}
                     inputRef={quantityInputRef}
+                    disabled={!selectedPallet}
                     onChange={(e) => setQuantityInput((e.target as HTMLInputElement).value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
